@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Memory Mastery – Court Reporter Training by InterpreTrain</title>
+  <meta name="description" content="Free court reporter memory training app with 25 progressive drills. Practice testimony recall from foundation to exam-ready.">
+  <meta property="og:title" content="Memory Mastery – Court Reporter Training">
+  <meta property="og:description" content="25 progressive drills to sharpen your testimony recall. Free training tool by InterpreTrain.">
+  <meta property="og:type" content="website">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'DM Sans', sans-serif; background: #1A1612; }
+    input[type="range"] { -webkit-appearance: auto; }
+    textarea:focus, input:focus { outline: none; border-color: rgba(245,230,200,0.3) !important; }
+    button:active { opacity: 0.85; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #1A1612; }
+    ::-webkit-scrollbar-thumb { background: rgba(245,230,200,0.15); border-radius: 3px; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useCallback } = React;
+
+/* ─────────────────────── DATA: 25 LEVELS ─────────────────────── */
+const LEVELS = [
+  {
+    id: 1, tier: 1, tierName: "Foundation", words: 17,
+    tip: "Chunking: Break what you hear into small phrase groups of 3–5 words. Don't try to hold every word individually.",
+    testimony: "I saw the man run across the street. He was wearing a dark blue jacket and jeans.",
+    category: "Criminal – Eyewitness",
+    keyDetails: ["man", "run", "across the street", "dark blue jacket", "jeans"],
+    quiz: {
+      multipleChoice: [{ q: "What was the man wearing?", options: ["Red hoodie and shorts", "Dark blue jacket and jeans", "Black coat and khakis", "Green sweater and jeans"], answer: 1 }],
+      fillBlanks: { text: "I saw the man ___ across the street. He was wearing a dark ___ jacket and ___.", blanks: ["run", "blue", "jeans"] },
+      comprehension: [{ q: "What action did the witness observe the man taking?", answer: "Running across the street" }],
+      sequence: ["Witness sees man", "Man runs across street", "Witness notes jacket color", "Witness notes jeans"]
+    }
+  },
+  {
+    id: 2, tier: 1, tierName: "Foundation", words: 18,
+    tip: "Story Mapping: Picture the scene like a movie. Where are the people standing? What does the room look like?",
+    testimony: "The car hit the fire hydrant at around nine fifteen in the morning. Water sprayed everywhere across the sidewalk.",
+    category: "Civil – Car Accident",
+    keyDetails: ["car", "fire hydrant", "nine fifteen", "morning", "water sprayed", "sidewalk"],
+    quiz: {
+      multipleChoice: [{ q: "What time did the incident occur?", options: ["Eight thirty", "Nine fifteen", "Ten forty-five", "Nine forty-five"], answer: 1 }],
+      fillBlanks: { text: "The car hit the ___ ___ at around ___ fifteen in the morning.", blanks: ["fire", "hydrant", "nine"] },
+      comprehension: [{ q: "What was the immediate result of the car hitting the object?", answer: "Water sprayed everywhere across the sidewalk" }],
+      sequence: ["Car approaches", "Car hits fire hydrant", "Water sprays everywhere", "Sidewalk gets flooded"]
+    }
+  },
+  {
+    id: 3, tier: 1, tierName: "Foundation", words: 16,
+    tip: "Number Focus: When you hear numbers like addresses or dates, mentally repeat them twice to lock them in.",
+    testimony: "My name is Sarah Collins. I live at fourteen Oak Street. I have been there since two thousand nineteen.",
+    category: "Civil – Witness Statement",
+    keyDetails: ["Sarah Collins", "fourteen", "Oak Street", "two thousand nineteen"],
+    quiz: {
+      multipleChoice: [{ q: "What street does the witness live on?", options: ["Elm Street", "Oak Street", "Maple Avenue", "Pine Road"], answer: 1 }],
+      fillBlanks: { text: "My name is ___ ___. I live at ___ Oak Street.", blanks: ["Sarah", "Collins", "fourteen"] },
+      comprehension: [{ q: "How long has the witness lived at that address (approximately)?", answer: "Since 2019, roughly 6-7 years" }],
+      sequence: ["Witness states name", "Witness gives address number", "Witness names street", "Witness states move-in year"]
+    }
+  },
+  {
+    id: 4, tier: 1, tierName: "Foundation", words: 19,
+    tip: "Emotional Tagging: Notice the feeling behind the words. Fear, anger, sadness — emotions help you remember details.",
+    testimony: "I was terrified. The dog came charging at me from the yard. It was a large brown pit bull with no leash.",
+    category: "Civil – Animal Attack",
+    keyDetails: ["terrified", "dog", "charging", "yard", "large brown pit bull", "no leash"],
+    quiz: {
+      multipleChoice: [{ q: "What breed was the dog?", options: ["German shepherd", "Rottweiler", "Pit bull", "Labrador"], answer: 2 }],
+      fillBlanks: { text: "The dog came ___ at me from the yard. It was a large ___ pit bull with no ___.", blanks: ["charging", "brown", "leash"] },
+      comprehension: [{ q: "How did the witness feel during the encounter?", answer: "Terrified" }],
+      sequence: ["Witness feels terrified", "Dog charges from yard", "Witness identifies breed", "Witness notes no leash"]
+    }
+  },
+  {
+    id: 5, tier: 1, tierName: "Foundation", words: 20,
+    tip: "Instant Replay: After listening, immediately replay the testimony in your mind once before answering any questions.",
+    testimony: "The officer asked me to step out of the vehicle. He said I had been going fifty in a thirty zone near the school.",
+    category: "Criminal – Traffic Stop",
+    keyDetails: ["officer", "step out", "vehicle", "fifty", "thirty zone", "school"],
+    quiz: {
+      multipleChoice: [{ q: "How fast was the driver going?", options: ["Forty", "Fifty", "Sixty", "Thirty-five"], answer: 1 }],
+      fillBlanks: { text: "He said I had been going ___ in a ___ zone near the ___.", blanks: ["fifty", "thirty", "school"] },
+      comprehension: [{ q: "Where was the speed zone located?", answer: "Near the school" }],
+      sequence: ["Officer stops vehicle", "Officer asks driver to step out", "Officer states speed", "Officer mentions school zone"]
+    }
+  },
+  {
+    id: 6, tier: 2, tierName: "Building", words: 25,
+    tip: "Linking Details: Connect each new detail to the last one like a chain. The address links to the person, the person links to the action.",
+    testimony: "On March fifteenth, two thousand twenty-three, I was walking my dog near Riverside Park when I heard two loud bangs coming from the parking lot behind the building.",
+    category: "Criminal – Witness to Shooting",
+    keyDetails: ["March fifteenth", "two thousand twenty-three", "walking dog", "Riverside Park", "two loud bangs", "parking lot", "behind the building"],
+    quiz: {
+      multipleChoice: [
+        { q: "Where were the loud sounds coming from?", options: ["The park entrance", "The parking lot behind the building", "The street", "Inside the building"], answer: 1 },
+        { q: "What was the witness doing at the time?", options: ["Jogging", "Walking a dog", "Sitting on a bench", "Driving"], answer: 1 }
+      ],
+      fillBlanks: { text: "On March ___, two thousand twenty-three, I was walking my dog near ___ Park when I heard ___ loud bangs.", blanks: ["fifteenth", "Riverside", "two"] },
+      comprehension: [{ q: "What was the exact date of the incident?", answer: "March 15, 2023" }],
+      sequence: ["Witness walks dog near park", "Witness hears two bangs", "Sounds come from parking lot", "Parking lot is behind building"]
+    }
+  },
+  {
+    id: 7, tier: 2, tierName: "Building", words: 27,
+    tip: "Spatial Placement: Mentally place yourself at the scene. Where is the door? Where are the people? Building a mental map locks in locations.",
+    testimony: "Dr. Miller told me the surgery would take about two hours and that there was a five percent chance of complications. He never mentioned anything about potential nerve damage or loss of mobility.",
+    category: "Civil – Medical Malpractice",
+    keyDetails: ["Dr. Miller", "surgery", "two hours", "five percent", "complications", "never mentioned", "nerve damage", "loss of mobility"],
+    quiz: {
+      multipleChoice: [
+        { q: "What was the stated chance of complications?", options: ["Two percent", "Five percent", "Ten percent", "Fifteen percent"], answer: 1 },
+        { q: "What did Dr. Miller fail to mention?", options: ["Surgery cost", "Recovery time", "Nerve damage and loss of mobility", "Alternative treatments"], answer: 2 }
+      ],
+      fillBlanks: { text: "Dr. ___ told me the surgery would take about ___ hours and that there was a ___ percent chance of complications.", blanks: ["Miller", "two", "five"] },
+      comprehension: [{ q: "What is the witness's core complaint about Dr. Miller?", answer: "He failed to disclose risks of nerve damage and loss of mobility" }],
+      sequence: ["Doctor discusses surgery duration", "Doctor mentions complication rate", "Doctor omits nerve damage risk", "Doctor omits mobility loss risk"]
+    }
+  },
+  {
+    id: 8, tier: 2, tierName: "Building", words: 28,
+    tip: "Category Sorting: As you listen, mentally sort details into buckets — people, places, times, actions. This makes recall systematic.",
+    testimony: "I signed the contract on June first at the downtown office. Mr. Hernandez assured me the delivery would arrive by August fifteenth. When it didn't, I called three times but nobody returned my calls.",
+    category: "Civil – Contract Dispute",
+    keyDetails: ["contract", "June first", "downtown office", "Mr. Hernandez", "delivery", "August fifteenth", "called three times", "nobody returned"],
+    quiz: {
+      multipleChoice: [
+        { q: "When was the contract signed?", options: ["May first", "June first", "July first", "June fifteenth"], answer: 1 },
+        { q: "How many times did the witness call?", options: ["Once", "Twice", "Three times", "Four times"], answer: 2 }
+      ],
+      fillBlanks: { text: "Mr. ___ assured me the delivery would arrive by ___ fifteenth. I called ___ times but nobody returned my calls.", blanks: ["Hernandez", "August", "three"] },
+      comprehension: [{ q: "What was the main problem the witness experienced?", answer: "The delivery never arrived by the promised date and calls were not returned" }],
+      sequence: ["Contract signed June first", "Delivery promised by August fifteenth", "Delivery fails to arrive", "Witness calls three times with no response"]
+    }
+  },
+  {
+    id: 9, tier: 2, tierName: "Building", words: 26,
+    tip: "First and Last: The first and last details of testimony tend to stick. Use them as bookends to reconstruct the middle.",
+    testimony: "I work the night shift at the warehouse on Fifth Avenue. At about two thirty a.m. I heard glass breaking. I looked outside and saw a person climbing through the window of the shop next door.",
+    category: "Criminal – Burglary Witness",
+    keyDetails: ["night shift", "warehouse", "Fifth Avenue", "two thirty a.m.", "glass breaking", "person climbing", "window", "shop next door"],
+    quiz: {
+      multipleChoice: [{ q: "What time did the witness hear the glass?", options: ["One thirty a.m.", "Two thirty a.m.", "Three fifteen a.m.", "Midnight"], answer: 1 }],
+      fillBlanks: { text: "I work the ___ shift at the warehouse on ___ Avenue. At about ___ thirty a.m. I heard glass breaking.", blanks: ["night", "Fifth", "two"] },
+      comprehension: [{ q: "What did the witness see when they looked outside?", answer: "A person climbing through the window of the shop next door" }],
+      sequence: ["Witness works night shift", "Hears glass breaking at 2:30 AM", "Looks outside", "Sees person climbing through shop window"]
+    }
+  },
+  {
+    id: 10, tier: 2, tierName: "Building", words: 29,
+    tip: "Active Listening Posture: Lean in mentally. Pretend you'll need to repeat this testimony to a judge in 60 seconds. Urgency sharpens attention.",
+    testimony: "The plaintiff fell on the wet floor near the produce section at approximately four forty-five p.m. There were no warning signs posted. The store manager, a woman named Karen, came over about ten minutes later.",
+    category: "Civil – Slip and Fall",
+    keyDetails: ["plaintiff fell", "wet floor", "produce section", "four forty-five p.m.", "no warning signs", "store manager", "Karen", "ten minutes later"],
+    quiz: {
+      multipleChoice: [
+        { q: "Where in the store did the fall occur?", options: ["Dairy aisle", "Produce section", "Front entrance", "Checkout area"], answer: 1 },
+        { q: "What was the store manager's name?", options: ["Linda", "Karen", "Susan", "Janet"], answer: 1 }
+      ],
+      fillBlanks: { text: "The plaintiff fell on the wet floor near the ___ section at approximately ___ forty-five p.m. There were no ___ signs posted.", blanks: ["produce", "four", "warning"] },
+      comprehension: [{ q: "What safety failure does the testimony highlight?", answer: "No warning signs were posted on the wet floor" }],
+      sequence: ["Floor is wet in produce section", "No warning signs posted", "Plaintiff falls at 4:45 PM", "Manager Karen arrives 10 minutes later"]
+    }
+  },
+  {
+    id: 11, tier: 3, tierName: "Intermediate", words: 35,
+    tip: "Chunking Review: At this length, aim for 7–9 chunks. Group 'who did what' and 'when and where' as separate chunks.",
+    testimony: "I'm Officer James Rivera, badge number four seven two one. On the night of October third, I responded to a domestic disturbance call at twenty-two fifteen hours at the residence located at three forty-one Birch Lane. Upon arrival I observed the front door was open and could hear shouting from inside.",
+    category: "Criminal – Police Testimony",
+    keyDetails: ["Officer James Rivera", "badge four seven two one", "October third", "domestic disturbance", "twenty-two fifteen hours", "three forty-one Birch Lane", "front door open", "shouting from inside"],
+    quiz: {
+      multipleChoice: [
+        { q: "What was the officer's badge number?", options: ["4712", "4271", "4721", "4217"], answer: 2 },
+        { q: "What type of call was it?", options: ["Robbery", "Noise complaint", "Domestic disturbance", "Assault"], answer: 2 }
+      ],
+      fillBlanks: { text: "I'm Officer James ___, badge number four seven two one. I responded at twenty-two ___ hours at ___ forty-one Birch Lane.", blanks: ["Rivera", "fifteen", "three"] },
+      comprehension: [{ q: "What did the officer observe when he arrived at the scene?", answer: "The front door was open and shouting could be heard from inside" }],
+      sequence: ["Officer identifies himself", "Responds to domestic disturbance call", "Arrives at 341 Birch Lane at 22:15", "Observes open front door", "Hears shouting inside"]
+    }
+  },
+  {
+    id: 12, tier: 3, tierName: "Intermediate", words: 36,
+    tip: "Mental Replay: After the testimony ends, quickly replay the 'movie' in your head from start to finish before looking at questions.",
+    testimony: "The defendant's vehicle, a silver two thousand eighteen Honda Civic with plates reading Alpha Bravo Charlie one two three four, was traveling northbound on Interstate ninety-five at an estimated speed of eighty-five miles per hour in a sixty-five mile per hour zone when it struck the median barrier.",
+    category: "Criminal – Traffic Accident Expert",
+    keyDetails: ["silver", "2018 Honda Civic", "Alpha Bravo Charlie 1234", "northbound", "Interstate ninety-five", "eighty-five mph", "sixty-five mph zone", "struck median barrier"],
+    quiz: {
+      multipleChoice: [
+        { q: "What were the license plates?", options: ["ABC 1234", "ABD 1234", "ABC 1243", "ACB 1234"], answer: 0 },
+        { q: "What was the speed limit?", options: ["Fifty-five", "Sixty-five", "Seventy", "Seventy-five"], answer: 1 }
+      ],
+      fillBlanks: { text: "A silver two thousand eighteen Honda ___ traveling ___ on Interstate ninety-five at ___ miles per hour.", blanks: ["Civic", "northbound", "eighty-five"] },
+      comprehension: [{ q: "By how much was the vehicle exceeding the speed limit?", answer: "Twenty miles per hour over the limit" }],
+      sequence: ["Vehicle identified as silver 2018 Honda Civic", "License plate noted", "Vehicle traveling northbound on I-95", "Speed estimated at 85 in a 65 zone", "Vehicle strikes median barrier"]
+    }
+  },
+  {
+    id: 13, tier: 3, tierName: "Intermediate", words: 38,
+    tip: "Emotional Anchoring: This testimony has emotional weight. Let yourself feel it — the emotion becomes a hook that anchors all the surrounding details.",
+    testimony: "I remember feeling scared because the man was yelling and pointing his finger at the cashier. He said give me everything in the register right now. The cashier, a young woman maybe twenty years old, started crying and opened the drawer. I was standing about fifteen feet away near the magazine rack.",
+    category: "Criminal – Robbery Witness",
+    keyDetails: ["scared", "man yelling", "pointing finger", "cashier", "everything in the register", "young woman", "twenty years old", "crying", "opened drawer", "fifteen feet", "magazine rack"],
+    quiz: {
+      multipleChoice: [
+        { q: "How far away was the witness?", options: ["Ten feet", "Fifteen feet", "Twenty feet", "Five feet"], answer: 1 },
+        { q: "How old was the cashier approximately?", options: ["Eighteen", "Twenty", "Twenty-five", "Sixteen"], answer: 1 }
+      ],
+      fillBlanks: { text: "The man was ___ and pointing his finger at the cashier. The cashier, a young woman maybe ___ years old, started ___.", blanks: ["yelling", "twenty", "crying"] },
+      comprehension: [{ q: "Where was the witness positioned during the robbery?", answer: "About fifteen feet away near the magazine rack" }],
+      sequence: ["Man yells at cashier", "Man demands register contents", "Cashier starts crying", "Cashier opens drawer", "Witness stands near magazine rack"]
+    }
+  },
+  {
+    id: 14, tier: 3, tierName: "Intermediate", words: 37,
+    tip: "Number Repetition: When you hear numbers, mentally repeat them twice. Numbers are the most commonly missed details in testimony recall.",
+    testimony: "The blood alcohol content was measured at point one two, which is above the legal limit of point zero eight. The sample was collected at eleven forty-seven p.m., approximately ninety minutes after the traffic stop. The defendant refused a field sobriety test but consented to the blood draw.",
+    category: "Criminal – Forensic Expert",
+    keyDetails: ["point one two", "point zero eight", "eleven forty-seven p.m.", "ninety minutes", "traffic stop", "refused field sobriety", "consented blood draw"],
+    quiz: {
+      multipleChoice: [
+        { q: "What was the blood alcohol content?", options: ["0.10", "0.12", "0.08", "0.15"], answer: 1 },
+        { q: "When was the sample collected?", options: ["10:47 PM", "11:47 PM", "11:17 PM", "12:47 AM"], answer: 1 }
+      ],
+      fillBlanks: { text: "Blood alcohol content was point ___ two, above the legal limit of point zero ___. Sample collected ___ minutes after the stop.", blanks: ["one", "eight", "ninety"] },
+      comprehension: [{ q: "What did the defendant refuse and what did they consent to?", answer: "Refused field sobriety test but consented to the blood draw" }],
+      sequence: ["Traffic stop occurs", "Defendant refuses field sobriety test", "Defendant consents to blood draw", "Sample collected 90 minutes later at 11:47 PM", "BAC measured at 0.12"]
+    }
+  },
+  {
+    id: 15, tier: 3, tierName: "Intermediate", words: 34,
+    tip: "Contrast Detection: Notice when testimony contains opposites or contradictions — 'he said X but did Y.' These pivot points are memory gold.",
+    testimony: "My client signed the lease agreement on January tenth for a twelve-month term at nineteen hundred dollars per month. The landlord agreed in writing to repair the heating system within thirty days but as of today, six months later, no repairs have been made.",
+    category: "Civil – Landlord Dispute",
+    keyDetails: ["lease", "January tenth", "twelve-month", "nineteen hundred dollars", "landlord agreed", "repair heating", "thirty days", "six months", "no repairs"],
+    quiz: {
+      multipleChoice: [
+        { q: "What was the monthly rent?", options: ["$1,700", "$1,800", "$1,900", "$2,000"], answer: 2 },
+        { q: "How long was the landlord given to make repairs?", options: ["Two weeks", "Thirty days", "Sixty days", "Ninety days"], answer: 1 }
+      ],
+      fillBlanks: { text: "Lease signed on January ___ for a ___-month term at ___ hundred dollars per month.", blanks: ["tenth", "twelve", "nineteen"] },
+      comprehension: [{ q: "What is the central broken promise in this testimony?", answer: "The landlord agreed to repair the heating within 30 days but hasn't done it after 6 months" }],
+      sequence: ["Lease signed January tenth", "Twelve-month term at $1,900/month", "Landlord agrees to repair heating in 30 days", "Six months pass", "No repairs made"]
+    }
+  },
+  {
+    id: 16, tier: 3, tierName: "Intermediate", words: 39,
+    tip: "Visual Snapshot: At the end of each sentence, take a mental 'photograph' of the scene. Stack these photos in order — they become your recall sequence.",
+    testimony: "I was on the second-floor balcony of my apartment when I saw two individuals exit a black SUV parked on the corner of Elm and Third. The taller one was carrying what appeared to be a baseball bat. They walked quickly toward the alley behind the hardware store. This was at approximately eight twenty p.m. on a Friday night.",
+    category: "Criminal – Witness Statement",
+    keyDetails: ["second-floor balcony", "two individuals", "black SUV", "Elm and Third", "taller one", "baseball bat", "alley", "hardware store", "eight twenty p.m.", "Friday"],
+    quiz: {
+      multipleChoice: [
+        { q: "Where was the SUV parked?", options: ["Elm and Second", "Elm and Third", "Oak and Third", "Elm and Fourth"], answer: 1 },
+        { q: "What was the taller individual carrying?", options: ["A pipe", "A crowbar", "A baseball bat", "A bag"], answer: 2 }
+      ],
+      fillBlanks: { text: "Two individuals exit a ___ SUV on the corner of ___ and Third. The taller one carried a ___ bat.", blanks: ["black", "Elm", "baseball"] },
+      comprehension: [{ q: "Where was the witness when they made these observations?", answer: "On the second-floor balcony of their apartment" }],
+      sequence: ["Witness on second-floor balcony", "Two individuals exit black SUV at Elm and Third", "Taller one carries baseball bat", "They walk toward alley behind hardware store", "Time noted as 8:20 PM Friday"]
+    }
+  },
+  {
+    id: 17, tier: 3, tierName: "Intermediate", words: 38,
+    tip: "Pause and Predict: After the first sentence, briefly predict what might come next. When testimony confirms or surprises your prediction, it creates a stronger memory trace.",
+    testimony: "I am a certified public accountant with eighteen years of experience. After reviewing the defendant's financial records from two thousand twenty through two thousand twenty-two, I found approximately three hundred forty thousand dollars in unreported income spread across seven separate offshore accounts in two different countries.",
+    category: "Criminal – Expert Financial Testimony",
+    keyDetails: ["certified public accountant", "eighteen years", "2020 through 2022", "three hundred forty thousand", "unreported income", "seven offshore accounts", "two countries"],
+    quiz: {
+      multipleChoice: [
+        { q: "How much unreported income was found?", options: ["$240,000", "$340,000", "$440,000", "$300,000"], answer: 1 },
+        { q: "How many offshore accounts were involved?", options: ["Five", "Six", "Seven", "Eight"], answer: 2 }
+      ],
+      fillBlanks: { text: "A certified public accountant with ___ years of experience found approximately ___ hundred forty thousand dollars across ___ offshore accounts.", blanks: ["eighteen", "three", "seven"] },
+      comprehension: [{ q: "What time period did the financial review cover?", answer: "2020 through 2022" }],
+      sequence: ["Expert identifies credentials", "Reviews records from 2020-2022", "Finds $340,000 unreported income", "Income spread across seven accounts", "Accounts in two different countries"]
+    }
+  },
+  {
+    id: 18, tier: 4, tierName: "Advanced", words: 44,
+    tip: "Hedging Language Alert: Real witnesses say 'I think,' 'I believe,' 'I'm not sure but…' Flag these — they often precede the most contested details.",
+    testimony: "I think it was around, um, seven or maybe seven thirty in the evening. I'm not a hundred percent sure. But I definitely saw the defendant — I believe his name is Marcus Thompson — standing near the victim's car. He was, well, he appeared to be looking through the passenger side window. I think he was holding something but I couldn't make out what it was from where I was standing across the parking lot.",
+    category: "Criminal – Uncertain Eyewitness",
+    keyDetails: ["seven or seven thirty", "not sure", "definitely saw defendant", "Marcus Thompson", "victim's car", "passenger side window", "holding something", "couldn't make out", "across parking lot"],
+    quiz: {
+      multipleChoice: [
+        { q: "What time did the witness estimate?", options: ["Six thirty", "Seven or seven thirty", "Eight o'clock", "Six or six thirty"], answer: 1 },
+        { q: "Where was the defendant standing?", options: ["Near a store entrance", "By the victim's car", "At a bus stop", "On the sidewalk"], answer: 1 }
+      ],
+      fillBlanks: { text: "I definitely saw the defendant — I believe his name is ___ ___ — standing near the victim's car by the ___ side window.", blanks: ["Marcus", "Thompson", "passenger"] },
+      comprehension: [{ q: "What elements of this testimony show uncertainty?", answer: "The witness uses 'I think,' 'maybe,' 'I'm not a hundred percent sure,' 'appeared to be,' and 'couldn't make out'" }],
+      sequence: ["Witness estimates time as 7 or 7:30", "Sees defendant near victim's car", "Identifies defendant as Marcus Thompson", "Defendant looking through passenger window", "Defendant holding unidentified object", "Witness observing from across parking lot"]
+    }
+  },
+  {
+    id: 19, tier: 4, tierName: "Advanced", words: 46,
+    tip: "Detail Triage: You can't catch everything at this length. Prioritize names, numbers, and actions first. Background details come second.",
+    testimony: "The MRI results from September twenty-second showed a herniated disc at the L four L five level, which is consistent with the type of injury you'd see from a rear-end collision at moderate speed. The patient reported a pain level of eight out of ten during the initial examination. I prescribed a course of physical therapy, three sessions per week for eight weeks, along with a muscle relaxant and an anti-inflammatory. The estimated recovery time was four to six months.",
+    category: "Civil – Medical Expert",
+    keyDetails: ["MRI", "September twenty-second", "herniated disc", "L4-L5", "rear-end collision", "pain eight out of ten", "physical therapy", "three sessions per week", "eight weeks", "muscle relaxant", "anti-inflammatory", "four to six months"],
+    quiz: {
+      multipleChoice: [
+        { q: "At what spinal level was the herniated disc?", options: ["L3-L4", "L4-L5", "L5-S1", "L3-L5"], answer: 1 },
+        { q: "What was the patient's pain level?", options: ["Six out of ten", "Seven out of ten", "Eight out of ten", "Nine out of ten"], answer: 2 }
+      ],
+      fillBlanks: { text: "MRI from September ___ showed a herniated disc at L four L five. Physical therapy ___ sessions per week for ___ weeks.", blanks: ["twenty-second", "three", "eight"] },
+      comprehension: [{ q: "What was the full treatment plan prescribed?", answer: "Physical therapy three times per week for eight weeks, plus a muscle relaxant and anti-inflammatory" }],
+      sequence: ["MRI taken September 22nd", "Herniated disc found at L4-L5", "Pain reported at 8/10", "Physical therapy prescribed", "Medications prescribed", "Recovery estimated at 4-6 months"]
+    }
+  },
+  {
+    id: 20, tier: 4, tierName: "Advanced", words: 47,
+    tip: "Self-Correction Tracking: When a witness corrects themselves ('No wait, it was actually…'), the correction is usually more accurate. Mentally overwrite the first version.",
+    testimony: "I remember the accident clearly. The red truck — no wait, it was more of a maroon color — ran the stop sign at the intersection of Pine and, uh, Seventh Street. No, sorry, it was Sixth Street. The truck hit the passenger side of a white sedan. I'd say the truck was going about thirty-five, maybe forty miles per hour. The driver of the sedan, an older gentleman, he didn't get out of the car for several minutes. I called nine one one right away from my cell phone.",
+    category: "Civil – Car Accident Eyewitness",
+    keyDetails: ["maroon truck", "ran stop sign", "Sixth Street", "Pine", "passenger side", "white sedan", "thirty-five to forty mph", "older gentleman", "didn't get out", "several minutes", "called 911"],
+    quiz: {
+      multipleChoice: [
+        { q: "What was the correct color of the truck?", options: ["Red", "Maroon", "Brown", "Burgundy"], answer: 1 },
+        { q: "What was the correct street name?", options: ["Fifth Street", "Sixth Street", "Seventh Street", "Eighth Street"], answer: 1 }
+      ],
+      fillBlanks: { text: "The ___ truck ran the stop sign at Pine and ___ Street, hitting a white sedan on the ___ side.", blanks: ["maroon", "Sixth", "passenger"] },
+      comprehension: [{ q: "What self-corrections did the witness make?", answer: "Corrected the truck color from red to maroon, and the street from Seventh to Sixth" }],
+      sequence: ["Maroon truck runs stop sign", "Intersection of Pine and Sixth", "Truck hits passenger side of white sedan", "Truck estimated at 35-40 mph", "Elderly driver stays in sedan", "Witness calls 911"]
+    }
+  },
+  {
+    id: 21, tier: 4, tierName: "Advanced", words: 48,
+    tip: "Narrative Thread: Find the 'story spine' — the one sentence that captures the core event. Build your recall outward from that spine.",
+    testimony: "On the afternoon of November twelfth, at approximately three fifteen p.m., I was conducting a routine inspection of the construction site at forty-five hundred West Industrial Boulevard when I observed that the scaffolding on the north side of the building had not been properly secured according to OSHA regulation nineteen twenty-six point four five one. Three workers were on the scaffolding at the time without fall protection harnesses. I immediately ordered the area cleared and issued a stop-work order. The site foreman, David Chen, acknowledged the violation but stated they were behind schedule.",
+    category: "Civil – Workplace Safety",
+    keyDetails: ["November twelfth", "three fifteen p.m.", "4500 West Industrial Boulevard", "scaffolding", "north side", "OSHA 1926.451", "three workers", "no fall protection", "stop-work order", "David Chen", "behind schedule"],
+    quiz: {
+      multipleChoice: [
+        { q: "What OSHA regulation was violated?", options: ["1926.451", "1926.501", "1926.351", "1910.451"], answer: 0 },
+        { q: "How many workers were on the scaffolding?", options: ["Two", "Three", "Four", "Five"], answer: 1 }
+      ],
+      fillBlanks: { text: "Inspection at ___ hundred West Industrial Boulevard. Scaffolding on the ___ side not secured per OSHA ___.", blanks: ["forty-five", "north", "nineteen twenty-six point four five one"] },
+      comprehension: [{ q: "What was the foreman's response to the violation?", answer: "David Chen acknowledged the violation but said they were behind schedule" }],
+      sequence: ["Inspector at 4500 W Industrial Blvd on Nov 12", "Observes unsecured scaffolding on north side", "Notes OSHA 1926.451 violation", "Three workers without harnesses", "Orders area cleared", "Issues stop-work order", "Foreman Chen acknowledges but cites schedule pressure"]
+    }
+  },
+  {
+    id: 22, tier: 4, tierName: "Advanced", words: 45,
+    tip: "Perspective Taking: Imagine you ARE the witness. Feel what they felt, see what they saw. First-person immersion dramatically improves detail recall.",
+    testimony: "I've been the property manager at Oakwood Apartments for fourteen years. The tenant in unit three twelve, Ms. Patricia Gomez, submitted a written complaint about black mold in her bathroom on February third. Our maintenance team inspected on February tenth and confirmed the presence of mold. However, due to a backlog of work orders, the remediation didn't begin until March twenty-eighth, nearly eight weeks later. Ms. Gomez was hospitalized for respiratory issues on March fifteenth, before the repairs started.",
+    category: "Civil – Property Damage / Negligence",
+    keyDetails: ["fourteen years", "unit 312", "Patricia Gomez", "black mold", "bathroom", "February third", "inspected February tenth", "confirmed mold", "backlog", "remediation March twenty-eighth", "eight weeks", "hospitalized March fifteenth", "respiratory issues", "before repairs"],
+    quiz: {
+      multipleChoice: [
+        { q: "When was the mold complaint submitted?", options: ["January third", "February third", "March third", "February thirteenth"], answer: 1 },
+        { q: "When was Ms. Gomez hospitalized?", options: ["March fifth", "March fifteenth", "March twenty-fifth", "February fifteenth"], answer: 1 }
+      ],
+      fillBlanks: { text: "Tenant in unit ___ twelve, Ms. Patricia ___, complained about black mold on February ___.", blanks: ["three", "Gomez", "third"] },
+      comprehension: [{ q: "Why is the timeline significant in this testimony?", answer: "Ms. Gomez was hospitalized on March 15 before repairs even started on March 28, suggesting the delay caused harm" }],
+      sequence: ["Mold complaint submitted Feb 3", "Maintenance inspects Feb 10", "Mold presence confirmed", "Work order backlog delays repair", "Gomez hospitalized March 15", "Remediation begins March 28"]
+    }
+  },
+  {
+    id: 23, tier: 5, tierName: "Exam Simulation", words: 45,
+    tip: "Full Exam Mode: Combine all techniques — chunk, visualize, repeat numbers, tag emotions. Take one deep breath before listening. You've trained for this.",
+    testimony: "Your Honor, on the evening of December seventh, I was working the register at Quick Stop Grocery on the corner of Main and Twenty-Third Street. At approximately nine fifty p.m., a male individual, approximately five foot ten, wearing a gray hoodie and dark pants, entered the store and approached the counter. He pulled out what I believed to be a small handgun from his waistband and demanded I open the register and give him all the cash. I complied and he took approximately four hundred and sixty dollars. He then fled on foot heading westbound on Twenty-Third.",
+    category: "Criminal – Armed Robbery Victim",
+    keyDetails: ["December seventh", "Quick Stop Grocery", "Main and Twenty-Third", "nine fifty p.m.", "five foot ten", "gray hoodie", "dark pants", "small handgun", "waistband", "four hundred sixty dollars", "fled on foot", "westbound", "Twenty-Third"],
+    quiz: {
+      multipleChoice: [
+        { q: "How much money was taken?", options: ["$360", "$460", "$560", "$406"], answer: 1 },
+        { q: "What direction did the suspect flee?", options: ["Eastbound", "Westbound", "Northbound", "Southbound"], answer: 1 },
+        { q: "What was the suspect's approximate height?", options: ["5'8\"", "5'10\"", "6'0\"", "5'11\""], answer: 1 }
+      ],
+      fillBlanks: { text: "At Quick Stop Grocery on Main and ___-Third Street. Male approximately five foot ___, wearing a ___ hoodie. Took approximately four hundred ___ dollars.", blanks: ["Twenty", "ten", "gray", "sixty"] },
+      comprehension: [{ q: "Describe the suspect's appearance and method of robbery.", answer: "5'10\" male in gray hoodie and dark pants, pulled a small handgun from waistband, demanded cash" }],
+      sequence: ["Working register at Quick Stop on Dec 7", "Male enters at 9:50 PM", "Suspect approaches counter", "Pulls handgun from waistband", "Demands register cash", "Victim complies", "Suspect takes $460", "Flees westbound on 23rd Street"]
+    }
+  },
+  {
+    id: 24, tier: 5, tierName: "Exam Simulation", words: 45,
+    tip: "Calm Confidence: Trust your training. Don't panic if you miss a detail — your brain captured more than you think. Start with what you're sure of and build outward.",
+    testimony: "I am Dr. Rebecca Santos, board-certified emergency physician at Saint Mary's Hospital. On the night of August nineteenth, at approximately eleven thirty p.m., the patient, a thirty-four-year-old male named Kevin Walsh, was brought in by ambulance following a single-vehicle motorcycle accident on Route seventeen. He presented with a compound fracture of the left femur, multiple lacerations to the face and arms, and signs of a moderate concussion. His blood pressure was ninety over sixty, indicating he was in early hypovolemic shock. We administered two units of packed red blood cells and initiated emergency surgery at twelve fifteen a.m.",
+    category: "Civil – Medical Testimony",
+    keyDetails: ["Dr. Rebecca Santos", "Saint Mary's Hospital", "August nineteenth", "eleven thirty p.m.", "thirty-four year old", "Kevin Walsh", "motorcycle", "Route seventeen", "compound fracture", "left femur", "lacerations face and arms", "concussion", "blood pressure ninety over sixty", "hypovolemic shock", "two units blood", "surgery twelve fifteen a.m."],
+    quiz: {
+      multipleChoice: [
+        { q: "What was the patient's blood pressure?", options: ["80/50", "90/60", "100/70", "85/55"], answer: 1 },
+        { q: "Where did the accident occur?", options: ["Route 15", "Route 17", "Interstate 17", "Highway 19"], answer: 1 },
+        { q: "What time did emergency surgery begin?", options: ["11:45 PM", "12:00 AM", "12:15 AM", "12:30 AM"], answer: 2 }
+      ],
+      fillBlanks: { text: "Dr. Rebecca ___ at Saint Mary's. Patient ___ Walsh, age thirty-four, motorcycle accident on Route ___. Compound fracture of left ___.", blanks: ["Santos", "Kevin", "seventeen", "femur"] },
+      comprehension: [{ q: "What were all the injuries the patient presented with?", answer: "Compound fracture of left femur, multiple lacerations to face and arms, moderate concussion, and early hypovolemic shock" }],
+      sequence: ["Patient arrives by ambulance at 11:30 PM", "Motorcycle accident on Route 17 identified", "Compound fracture and lacerations noted", "Concussion signs observed", "BP 90/60 — hypovolemic shock", "Two units blood administered", "Emergency surgery at 12:15 AM"]
+    }
+  },
+  {
+    id: 25, tier: 5, tierName: "Exam Simulation", words: 45,
+    tip: "Final Challenge: This is exam-level testimony. Apply every technique you've learned. Chunk. Visualize. Repeat numbers. Tag emotions. You are ready.",
+    testimony: "I am Detective Sarah Park, homicide division, badge number eight three nine two. On January fourteenth at approximately oh six hundred hours, I was called to the scene at twenty-seven twelve Maple Drive regarding a suspicious death. Upon arrival, I observed the victim, later identified as forty-one-year-old Robert James Whitfield, lying face down in the kitchen near the rear entrance. There were signs of forced entry on the back door — the deadbolt was broken and there were tool marks consistent with a pry bar. I noted what appeared to be blunt force trauma to the back of the victim's head. The medical examiner arrived at oh seven thirty and estimated the time of death as between midnight and three a.m.",
+    category: "Criminal – Homicide Detective",
+    keyDetails: ["Detective Sarah Park", "homicide", "badge 8392", "January fourteenth", "oh six hundred", "2712 Maple Drive", "suspicious death", "Robert James Whitfield", "forty-one", "face down", "kitchen", "rear entrance", "forced entry", "back door", "deadbolt broken", "pry bar", "blunt force trauma", "back of head", "ME arrived oh seven thirty", "midnight to three a.m."],
+    quiz: {
+      multipleChoice: [
+        { q: "What was the detective's badge number?", options: ["8329", "8392", "8932", "8293"], answer: 1 },
+        { q: "What was the estimated time of death?", options: ["11 PM to 2 AM", "Midnight to 3 AM", "1 AM to 4 AM", "10 PM to 1 AM"], answer: 1 },
+        { q: "What evidence of forced entry was found?", options: ["Broken window", "Broken deadbolt with pry bar marks", "Picked lock", "Removed hinges"], answer: 1 }
+      ],
+      fillBlanks: { text: "Detective Sarah ___, badge ___. Scene at twenty-seven twelve ___ Drive. Victim ___ James Whitfield, age forty-one.", blanks: ["Park", "eight three nine two", "Maple", "Robert"] },
+      comprehension: [{ q: "What physical evidence suggested the manner of entry and cause of death?", answer: "Forced entry via back door with broken deadbolt and pry bar marks; blunt force trauma to back of victim's head" }],
+      sequence: ["Detective called at 0600 to 2712 Maple Drive", "Victim found face down in kitchen", "Identified as Robert Whitfield, 41", "Forced entry on back door noted", "Deadbolt broken, pry bar marks found", "Blunt force trauma to back of head observed", "Medical examiner arrives at 0730", "Time of death estimated midnight to 3 AM"]
+    }
+  }
+];
+
+const TIERS = [
+  { num: 1, name: "Foundation", range: "15–20 words", levels: "1–5", color: "#4A9B7F", description: "Simple, direct testimony. One core idea." },
+  { num: 2, name: "Building", range: "20–30 words", levels: "6–10", color: "#C4873B", description: "Two related ideas with dates and names." },
+  { num: 3, name: "Intermediate", range: "30–40 words", levels: "11–17", color: "#8B6BB5", description: "Complex sentences, legal terms, numbers." },
+  { num: 4, name: "Advanced", range: "40–50 words", levels: "18–22", color: "#C75B5B", description: "Dense testimony with hedging and corrections." },
+  { num: 5, name: "Exam Simulation", range: "~45 words", levels: "23–25", color: "#D4A843", description: "Realistic exam-condition passages." }
+];
+
+/* ─── SPEECH ─── */
+function useTestimonySpeech() {
+  const synthRef = useRef(window.speechSynthesis);
+  const [speaking, setSpeaking] = useState(false);
+  const speak = useCallback((text, rate = 0.92) => {
+    const synth = synthRef.current; synth.cancel();
+    const utter = new SpeechSynthesisUtterance(text); utter.rate = rate; utter.pitch = 1.0;
+    const voices = synth.getVoices();
+    const preferred = voices.find(v => v.name.includes("Google") && v.lang.startsWith("en")) || voices.find(v => v.lang.startsWith("en"));
+    if (preferred) utter.voice = preferred;
+    utter.onstart = () => setSpeaking(true); utter.onend = () => setSpeaking(false); utter.onerror = () => setSpeaking(false);
+    synth.speak(utter);
+  }, []);
+  const stop = useCallback(() => { synthRef.current.cancel(); setSpeaking(false); }, []);
+  return { speak, stop, speaking };
+}
+
+/* ─── MAIN APP ─── */
+export default function App() {
+  const [view, setView] = useState("dashboard");
+  const [currentLevel, setCurrentLevel] = useState(null);
+  const [drillPhase, setDrillPhase] = useState("tip");
+  const [quizAnswers, setQuizAnswers] = useState({});
+  const [quizScore, setQuizScore] = useState(null);
+  const [confidence, setConfidence] = useState(5);
+  const [freeRecall, setFreeRecall] = useState("");
+  const [sequenceOrder, setSequenceOrder] = useState([]);
+  const [dragIdx, setDragIdx] = useState(null);
+  const [progress, setProgress] = useState({});
+  const [showTranscript, setShowTranscript] = useState(false);
+  const { speak, stop, speaking } = useTestimonySpeech();
+  const [listenCount, setListenCount] = useState(0);
+  const [tipCountdown, setTipCountdown] = useState(0);
+  const timerRef = useRef(null);
+
+  const level = currentLevel ? LEVELS.find(l => l.id === currentLevel) : null;
+  const tier = level ? TIERS.find(t => t.num === level.tier) : null;
+
+  useEffect(() => {
+    if (drillPhase === "tip" && tipCountdown > 0) {
+      timerRef.current = setTimeout(() => setTipCountdown(c => c - 1), 1000);
+      return () => clearTimeout(timerRef.current);
+    }
+  }, [drillPhase, tipCountdown]);
+
+  function startDrill(id) {
+    setCurrentLevel(id); setDrillPhase("tip"); setQuizAnswers({}); setQuizScore(null);
+    setConfidence(5); setFreeRecall(""); setShowTranscript(false); setListenCount(0); setTipCountdown(12);
+    const lvl = LEVELS.find(l => l.id === id);
+    setSequenceOrder(lvl ? [...lvl.quiz.sequence].sort(() => Math.random() - 0.5) : []);
+    setView("drill");
+  }
+  function playTestimony() { if (level) { speak(level.testimony); setListenCount(c => c + 1); } }
+  function calculateScore() {
+    if (!level) return 0; let total = 0, earned = 0;
+    level.quiz.multipleChoice.forEach((q, i) => { total++; if (quizAnswers[`mc_${i}`] === q.answer) earned++; });
+    level.quiz.fillBlanks.blanks.forEach((b, i) => { total++; if ((quizAnswers[`fb_${i}`] || "").toLowerCase().trim() === b.toLowerCase()) earned++; });
+    level.quiz.sequence.forEach((item, i) => { total += 0.5; if (sequenceOrder[i] === item) earned += 0.5; });
+    const rl = freeRecall.toLowerCase();
+    level.keyDetails.forEach(kd => { total += 0.5; if (rl.includes(kd.toLowerCase().split(" ")[0])) earned += 0.5; });
+    return Math.round((earned / total) * 100);
+  }
+  function submitQuiz() {
+    const score = calculateScore(); setQuizScore(score); setDrillPhase("review");
+    setProgress(prev => ({ ...prev, [currentLevel]: { score: Math.max(score, prev[currentLevel]?.score || 0), confidence, attempts: (prev[currentLevel]?.attempts || 0) + 1 } }));
+  }
+  function moveSeqItem(from, to) { const a = [...sequenceOrder]; const [item] = a.splice(from, 1); a.splice(to, 0, item); setSequenceOrder(a); }
+  const goHome = () => { stop(); setView("dashboard"); setCurrentLevel(null); };
+
+  /* ═══════════ RENDER ═══════════ */
+
+  const renderDashboard = () => (
+    <div style={{ maxWidth: 920, margin: "0 auto", padding: "36px 20px" }}>
+      {/* Hero */}
+      <div style={{ textAlign: "center", marginBottom: 48 }}>
+        <a href="https://www.interpretrain.com" target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", marginBottom: 18 }}>
+          <img src="https://interpretrain.com/cdn/shop/files/logo_180x.jpg?v=1613164057" alt="InterpreTrain" style={{ height: 64, borderRadius: 12 }} />
+        </a>
+        <div style={{ fontSize: 11, letterSpacing: 4, textTransform: "uppercase", color: "#9B8A6E", marginBottom: 8 }}>Court Reporter Training</div>
+        <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(30px, 5vw, 50px)", fontWeight: 700, color: "#F5E6C8", margin: "0 0 10px", lineHeight: 1.15 }}>Memory Mastery</h1>
+        <p style={{ color: "#8A8070", fontSize: 15, maxWidth: 460, margin: "0 auto 16px" }}>25 progressive drills to sharpen your testimony recall from foundation to exam-ready.</p>
+        <a href="https://www.interpretrain.com" target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: "#C4873B", textDecoration: "none", borderBottom: "1px solid #C4873B50" }}>www.interpretrain.com</a>
+      </div>
+
+      {/* Stats */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 12, marginBottom: 44 }}>
+        {[
+          { label: "Completed", value: Object.keys(progress).length, unit: "/25" },
+          { label: "Best Score", value: Math.max(0, ...Object.values(progress).map(p => p.score)), unit: "%" },
+          { label: "Total Drills", value: Object.values(progress).reduce((a, p) => a + p.attempts, 0), unit: "" },
+          { label: "Avg Confidence", value: Object.keys(progress).length ? Math.round(Object.values(progress).reduce((a, p) => a + p.confidence, 0) / Object.keys(progress).length) : 0, unit: "/10" }
+        ].map((stat, i) => (
+          <div key={i} style={{ background: "rgba(245,230,200,0.04)", borderRadius: 12, padding: "20px 16px", textAlign: "center", border: "1px solid rgba(245,230,200,0.08)" }}>
+            <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, color: "#F5E6C8", fontWeight: 700 }}>{stat.value}<span style={{ fontSize: 14, color: "#9B8A6E" }}>{stat.unit}</span></div>
+            <div style={{ fontSize: 10, letterSpacing: 2.5, textTransform: "uppercase", color: "#7A7060", marginTop: 6, fontWeight: 600 }}>{stat.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Tiers */}
+      {TIERS.map(t => {
+        const tierLevels = LEVELS.filter(l => l.tier === t.num);
+        return (
+          <div key={t.num} style={{ marginBottom: 36 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
+              <div style={{ width: 4, height: 28, background: t.color, borderRadius: 2 }} />
+              <div>
+                <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, color: "#F5E6C8", margin: 0, fontWeight: 700 }}>{t.name}</h2>
+                <span style={{ fontSize: 13, color: "#7A7060" }}>Levels {t.levels} · {t.range} · {t.description}</span>
+              </div>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(155px, 1fr))", gap: 10 }}>
+              {tierLevels.map(l => {
+                const p = progress[l.id]; const done = !!p;
+                return (
+                  <button key={l.id} onClick={() => startDrill(l.id)}
+                    style={{ background: done ? `${t.color}15` : "rgba(245,230,200,0.03)", border: `1px solid ${done ? t.color + "40" : "rgba(245,230,200,0.08)"}`, borderRadius: 10, padding: "16px 14px", cursor: "pointer", textAlign: "left", transition: "all 0.2s", position: "relative", overflow: "hidden", fontFamily: "'DM Sans', sans-serif" }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = t.color; e.currentTarget.style.transform = "translateY(-2px)"; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = done ? t.color + "40" : "rgba(245,230,200,0.08)"; e.currentTarget.style.transform = "none"; }}
+                  >
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
+                      <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 17, color: "#F5E6C8", fontWeight: 700 }}>Level {l.id}</span>
+                      {done && <span style={{ fontSize: 12, color: t.color, fontWeight: 700 }}>{p.score}%</span>}
+                    </div>
+                    <div style={{ fontSize: 12, color: "#7A7060", lineHeight: 1.4 }}>{l.category}</div>
+                    <div style={{ fontSize: 11, color: "#5A5040", marginTop: 4 }}>{l.words} words</div>
+                    {done && <div style={{ position: "absolute", bottom: 0, left: 0, width: `${p.score}%`, height: 3, background: t.color, opacity: 0.6 }} />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+
+      {/* Footer */}
+      <div style={{ textAlign: "center", marginTop: 48, paddingTop: 24, borderTop: "1px solid rgba(245,230,200,0.08)" }}>
+        <a href="https://www.interpretrain.com" target="_blank" rel="noopener noreferrer" style={{ display: "inline-block" }}>
+          <img src="https://interpretrain.com/cdn/shop/files/logo_180x.jpg?v=1613164057" alt="InterpreTrain" style={{ height: 40, borderRadius: 8, opacity: 0.8 }} />
+        </a>
+        <p style={{ fontSize: 12, color: "#5A5040", marginTop: 8 }}>© InterpreTrain · <a href="https://www.interpretrain.com" target="_blank" rel="noopener noreferrer" style={{ color: "#9B8A6E", textDecoration: "none" }}>www.interpretrain.com</a></p>
+      </div>
+    </div>
+  );
+
+  /* ─── TIP PHASE ─── */
+  const renderTipPhase = () => (
+    <div style={{ textAlign: "center", maxWidth: 520, margin: "0 auto", padding: "60px 20px" }}>
+      <div style={{ fontSize: 11, letterSpacing: 3, textTransform: "uppercase", color: tier.color, marginBottom: 16, fontWeight: 600 }}>Level {level.id} · {tier.name}</div>
+      <div style={{ background: `${tier.color}10`, border: `1px solid ${tier.color}30`, borderRadius: 16, padding: "32px 28px", marginBottom: 32 }}>
+        <div style={{ fontSize: 12, color: tier.color, fontWeight: 700, marginBottom: 8, letterSpacing: 1.5, textTransform: "uppercase" }}>Memory Technique</div>
+        <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 18, color: "#F5E6C8", lineHeight: 1.6, margin: 0 }}>{level.tip}</p>
+      </div>
+      <div style={{ fontSize: 13, color: "#7A7060", marginBottom: 8 }}>{level.category} · {level.words} words</div>
+      <button onClick={() => setDrillPhase("visualize")}
+        disabled={tipCountdown > 0}
+        style={{ background: tipCountdown > 0 ? "rgba(245,230,200,0.08)" : tier.color, color: tipCountdown > 0 ? "#9B8A6E" : "#1A1612", border: "none", borderRadius: 8, padding: "14px 36px", fontSize: 15, fontWeight: 600, cursor: tipCountdown > 0 ? "default" : "pointer", fontFamily: "'DM Sans', sans-serif", letterSpacing: 0.5, marginTop: 8, transition: "all 0.2s" }}>
+        {tipCountdown > 0 ? `Read the tip... ${tipCountdown}s` : "I'm Ready →"}
+      </button>
+    </div>
+  );
+
+  /* ─── VISUALIZE ─── */
+  const renderVisualize = () => (
+    <div style={{ textAlign: "center", maxWidth: 480, margin: "0 auto", padding: "80px 20px" }}>
+      <div style={{ fontSize: 48, marginBottom: 24 }}>🎬</div>
+      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: "#F5E6C8", marginBottom: 16 }}>Prepare to Listen</h2>
+      <div style={{ background: "rgba(245,230,200,0.04)", border: "1px solid rgba(245,230,200,0.08)", borderRadius: 14, padding: "28px 24px", marginBottom: 32 }}>
+        <p style={{ color: "#C4B89A", fontSize: 16, lineHeight: 1.7, margin: 0 }}>Close your eyes. As you listen, picture the scene as if you're watching a movie. Where are the people? What are they doing? What does the room look like?</p>
+      </div>
+      <button onClick={() => { setDrillPhase("listen"); playTestimony(); }}
+        style={{ background: "transparent", color: tier.color, border: `2px solid ${tier.color}`, borderRadius: 8, padding: "14px 36px", fontSize: 15, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>
+        ▶ Play Testimony
+      </button>
+    </div>
+  );
+
+  /* ─── LISTEN ─── */
+  const renderListen = () => (
+    <div style={{ textAlign: "center", maxWidth: 480, margin: "0 auto", padding: "60px 20px" }}>
+      <div style={{ fontSize: 11, letterSpacing: 3, textTransform: "uppercase", color: tier.color, marginBottom: 24, fontWeight: 600 }}>Level {level.id} · Listening</div>
+      <div style={{ width: 120, height: 120, borderRadius: "50%", margin: "0 auto 32px", display: "flex", alignItems: "center", justifyContent: "center", background: speaking ? `${tier.color}20` : "rgba(245,230,200,0.04)", border: `2px solid ${speaking ? tier.color : "rgba(245,230,200,0.1)"}`, transition: "all 0.3s", animation: speaking ? "pulse 2s infinite" : "none" }}>
+        <span style={{ fontSize: 40 }}>{speaking ? "🔊" : "🔇"}</span>
+      </div>
+      <style>{`@keyframes pulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.05); } }`}</style>
+      <p style={{ color: "#8A8070", fontSize: 14, marginBottom: 24 }}>
+        {speaking ? "Listen carefully... visualize the scene." : `Testimony complete. Listened ${listenCount} time${listenCount !== 1 ? "s" : ""}.`}
+      </p>
+      <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+        {!speaking && <>
+          <button onClick={playTestimony} style={{ background: "rgba(245,230,200,0.06)", color: "#C4B89A", border: "1px solid rgba(245,230,200,0.15)", borderRadius: 8, padding: "12px 24px", fontSize: 14, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>↻ Listen Again</button>
+          <button onClick={() => setDrillPhase("quiz")} style={{ background: tier.color, color: "#1A1612", border: "none", borderRadius: 8, padding: "12px 28px", fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>Start Quiz →</button>
+        </>}
+        {speaking && <button onClick={stop} style={{ background: "rgba(200,80,80,0.15)", color: "#C75B5B", border: "1px solid rgba(200,80,80,0.3)", borderRadius: 8, padding: "12px 24px", fontSize: 14, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>⏹ Stop</button>}
+      </div>
+    </div>
+  );
+
+  /* ─── QUIZ ─── */
+  const cardBg = "rgba(245,230,200,0.03)";
+  const cardBorder = "rgba(245,230,200,0.06)";
+  const inputBg = "rgba(245,230,200,0.04)";
+  const inputBorder = "rgba(245,230,200,0.1)";
+
+  const renderQuiz = () => (
+    <div style={{ maxWidth: 640, margin: "0 auto", padding: "32px 20px 80px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
+        <div>
+          <div style={{ fontSize: 11, letterSpacing: 3, textTransform: "uppercase", color: tier.color, fontWeight: 600 }}>Level {level.id} Quiz</div>
+          <div style={{ fontSize: 13, color: "#7A7060", marginTop: 3 }}>{level.category}</div>
+        </div>
+        <button onClick={() => setDrillPhase("listen")} style={{ background: "rgba(245,230,200,0.06)", border: "none", color: "#8A8070", borderRadius: 6, padding: "6px 14px", fontSize: 12, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>← Back</button>
+      </div>
+
+      {/* 1. Free Recall */}
+      <section style={{ background: cardBg, borderRadius: 12, border: `1px solid ${cardBorder}`, padding: "22px 20px", marginBottom: 20 }}>
+        <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 17, color: "#F5E6C8", marginTop: 0, marginBottom: 6 }}>1. Free Recall</h3>
+        <p style={{ fontSize: 13, color: "#8A8070", marginBottom: 14 }}>Write back as much of the testimony as you remember.</p>
+        <textarea value={freeRecall} onChange={e => setFreeRecall(e.target.value)} placeholder="Type everything you remember..." rows={4}
+          style={{ width: "100%", background: inputBg, border: `1.5px solid ${inputBorder}`, borderRadius: 10, padding: 14, color: "#E0D5C0", fontSize: 14, resize: "vertical", lineHeight: 1.6, boxSizing: "border-box", fontFamily: "'DM Sans', sans-serif" }} />
+      </section>
+
+      {/* 2. MC */}
+      <section style={{ background: cardBg, borderRadius: 12, border: `1px solid ${cardBorder}`, padding: "22px 20px", marginBottom: 20 }}>
+        <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 17, color: "#F5E6C8", marginTop: 0, marginBottom: 14 }}>2. Detail Check</h3>
+        {level.quiz.multipleChoice.map((q, qi) => (
+          <div key={qi} style={{ marginBottom: qi < level.quiz.multipleChoice.length - 1 ? 18 : 0 }}>
+            <p style={{ color: "#C4B89A", fontSize: 14, marginBottom: 10, fontWeight: 500 }}>{q.q}</p>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+              {q.options.map((opt, oi) => {
+                const sel = quizAnswers[`mc_${qi}`] === oi;
+                return <button key={oi} onClick={() => setQuizAnswers(p => ({ ...p, [`mc_${qi}`]: oi }))}
+                  style={{ background: sel ? `${tier.color}20` : inputBg, border: `1.5px solid ${sel ? tier.color : inputBorder}`, borderRadius: 8, padding: "10px 12px", color: sel ? "#F5E6C8" : "#8A8070", fontSize: 13, cursor: "pointer", textAlign: "left", transition: "all 0.15s", fontFamily: "'DM Sans', sans-serif", fontWeight: sel ? 600 : 400 }}>
+                  <span style={{ color: tier.color, marginRight: 5, fontWeight: 700 }}>{String.fromCharCode(97 + oi)})</span> {opt}
+                </button>;
+              })}
+            </div>
+          </div>
+        ))}
+      </section>
+
+      {/* 3. Fill */}
+      <section style={{ background: cardBg, borderRadius: 12, border: `1px solid ${cardBorder}`, padding: "22px 20px", marginBottom: 20 }}>
+        <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 17, color: "#F5E6C8", marginTop: 0, marginBottom: 10 }}>3. Fill in the Blanks</h3>
+        <p style={{ color: "#C4B89A", fontSize: 14, lineHeight: 1.7, marginBottom: 14 }}>{level.quiz.fillBlanks.text}</p>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          {level.quiz.fillBlanks.blanks.map((_, bi) => (
+            <input key={bi} value={quizAnswers[`fb_${bi}`] || ""} onChange={e => setQuizAnswers(p => ({ ...p, [`fb_${bi}`]: e.target.value }))} placeholder={`Blank ${bi + 1}`}
+              style={{ background: inputBg, border: `1.5px solid ${inputBorder}`, borderRadius: 6, padding: "8px 12px", color: "#F5E6C8", fontSize: 13, width: 120, fontFamily: "'DM Sans', sans-serif" }} />
+          ))}
+        </div>
+      </section>
+
+      {/* 4. Sequence */}
+      <section style={{ background: cardBg, borderRadius: 12, border: `1px solid ${cardBorder}`, padding: "22px 20px", marginBottom: 20 }}>
+        <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 17, color: "#F5E6C8", marginTop: 0, marginBottom: 6 }}>4. Sequence Ordering</h3>
+        <p style={{ fontSize: 13, color: "#8A8070", marginBottom: 12 }}>Drag items into the correct chronological order.</p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+          {sequenceOrder.map((item, idx) => (
+            <div key={item} draggable onDragStart={() => setDragIdx(idx)} onDragOver={e => e.preventDefault()} onDrop={() => { if (dragIdx !== null) { moveSeqItem(dragIdx, idx); setDragIdx(null); } }}
+              style={{ background: dragIdx === idx ? `${tier.color}15` : inputBg, border: `1.5px solid ${dragIdx === idx ? tier.color : inputBorder}`, borderRadius: 8, padding: "11px 14px", cursor: "grab", display: "flex", alignItems: "center", gap: 10, transition: "all 0.15s" }}>
+              <span style={{ color: tier.color, fontWeight: 800, fontSize: 13, minWidth: 20 }}>{idx + 1}</span>
+              <span style={{ color: "#C4B89A", fontSize: 13 }}>{item}</span>
+              <span style={{ marginLeft: "auto", color: "#5A5040", fontSize: 16 }}>⠿</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* 5. Comprehension */}
+      <section style={{ background: cardBg, borderRadius: 12, border: `1px solid ${cardBorder}`, padding: "22px 20px", marginBottom: 20 }}>
+        <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 17, color: "#F5E6C8", marginTop: 0, marginBottom: 14 }}>5. Comprehension</h3>
+        {level.quiz.comprehension.map((q, qi) => (
+          <div key={qi}>
+            <p style={{ color: "#C4B89A", fontSize: 14, marginBottom: 10, fontWeight: 500 }}>{q.q}</p>
+            <textarea value={quizAnswers[`comp_${qi}`] || ""} onChange={e => setQuizAnswers(p => ({ ...p, [`comp_${qi}`]: e.target.value }))} placeholder="Your answer..." rows={2}
+              style={{ width: "100%", background: inputBg, border: `1.5px solid ${inputBorder}`, borderRadius: 8, padding: 12, color: "#E0D5C0", fontSize: 13, resize: "vertical", boxSizing: "border-box", fontFamily: "'DM Sans', sans-serif" }} />
+          </div>
+        ))}
+      </section>
+
+      {/* Confidence */}
+      <section style={{ background: cardBg, borderRadius: 12, border: `1px solid ${cardBorder}`, padding: "22px 20px", marginBottom: 28 }}>
+        <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, color: "#F5E6C8", marginTop: 0, marginBottom: 12 }}>How confident are you in your recall?</h3>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <span style={{ fontSize: 12, color: "#5A5040" }}>Low</span>
+          <input type="range" min={1} max={10} value={confidence} onChange={e => setConfidence(Number(e.target.value))} style={{ flex: 1, accentColor: tier.color }} />
+          <span style={{ fontSize: 12, color: "#5A5040" }}>High</span>
+          <span style={{ color: tier.color, fontWeight: 800, fontSize: 20, minWidth: 30, textAlign: "center" }}>{confidence}</span>
+        </div>
+      </section>
+
+      <button onClick={submitQuiz} style={{ width: "100%", background: tier.color, color: "#1A1612", border: "none", borderRadius: 10, padding: "16px 0", fontSize: 16, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>Submit & Review</button>
+    </div>
+  );
+
+  /* ─── REVIEW ─── */
+  const renderReview = () => {
+    const getMC = (qi, oi) => { const c = level.quiz.multipleChoice[qi].answer, s = quizAnswers[`mc_${qi}`]; if (oi === c) return "correct"; if (oi === s && s !== c) return "wrong"; return ""; };
+    const getFB = bi => (quizAnswers[`fb_${bi}`] || "").toLowerCase().trim() === level.quiz.fillBlanks.blanks[bi].toLowerCase() ? "correct" : "wrong";
+    const cSeq = level.quiz.sequence;
+    const rc = { background: cardBg, borderRadius: 12, border: `1px solid ${cardBorder}`, padding: 20, marginBottom: 20 };
+    const green = "#4A9B7F", red = "#C75B5B";
+
+    return (
+      <div style={{ maxWidth: 640, margin: "0 auto", padding: "32px 20px 80px" }}>
+        <div style={{ textAlign: "center", marginBottom: 40 }}>
+          <div style={{ fontSize: 11, letterSpacing: 3, textTransform: "uppercase", color: tier.color, fontWeight: 600, marginBottom: 12 }}>Level {level.id} Complete</div>
+          <div style={{ width: 136, height: 136, borderRadius: "50%", margin: "0 auto 20px", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", border: `3px solid ${tier.color}`, background: `${tier.color}10` }}>
+            <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 44, color: "#F5E6C8", fontWeight: 700, lineHeight: 1 }}>{quizScore}</div>
+            <div style={{ fontSize: 13, color: "#9B8A6E" }}>percent</div>
+          </div>
+          <p style={{ fontSize: 14, color: "#8A8070" }}>Confidence: {confidence}/10 · Listens: {listenCount}</p>
+        </div>
+
+        {/* Transcript */}
+        <section style={rc}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+            <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 17, color: "#F5E6C8", margin: 0 }}>Transcript</h3>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={() => speak(level.testimony)} style={{ background: "rgba(245,230,200,0.06)", border: "none", borderRadius: 6, padding: "6px 14px", color: "#C4B89A", fontSize: 12, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>▶ Replay</button>
+              <button onClick={() => setShowTranscript(!showTranscript)} style={{ background: "rgba(245,230,200,0.06)", border: "none", borderRadius: 6, padding: "6px 14px", color: "#C4B89A", fontSize: 12, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>{showTranscript ? "Hide" : "Show"} Key Details</button>
+            </div>
+          </div>
+          <p style={{ color: "#C4B89A", fontSize: 14, lineHeight: 1.85, margin: 0 }}>
+            {showTranscript ? level.testimony.split(" ").map((w, i) => {
+              const isK = level.keyDetails.some(kd => kd.toLowerCase().split(" ").some(kw => w.toLowerCase().replace(/[.,!?]/g, "") === kw));
+              return <span key={i} style={{ background: isK ? `${tier.color}30` : "transparent", borderRadius: isK ? 3 : 0, padding: isK ? "2px 4px" : 0, color: isK ? "#F5E6C8" : undefined, fontWeight: isK ? 700 : undefined }}>{w} </span>;
+            }) : level.testimony}
+          </p>
+        </section>
+
+        {/* MC Review */}
+        <section style={rc}>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, color: "#F5E6C8", marginTop: 0, marginBottom: 14 }}>Detail Check</h3>
+          {level.quiz.multipleChoice.map((q, qi) => (
+            <div key={qi} style={{ marginBottom: 14 }}>
+              <p style={{ color: "#C4B89A", fontSize: 13, fontWeight: 500, marginBottom: 8 }}>{q.q}</p>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+                {q.options.map((opt, oi) => {
+                  const st = getMC(qi, oi);
+                  return <div key={oi} style={{ padding: "8px 10px", borderRadius: 7, fontSize: 12, background: st === "correct" ? `${green}20` : st === "wrong" ? `${red}20` : "rgba(245,230,200,0.03)", border: `1px solid ${st === "correct" ? green + "40" : st === "wrong" ? red + "40" : "rgba(245,230,200,0.06)"}`, color: st === "correct" ? green : st === "wrong" ? red : "#7A7060", fontWeight: st ? 600 : 400 }}>
+                    {st === "correct" ? "✓ " : st === "wrong" ? "✗ " : ""}{opt}
+                  </div>;
+                })}
+              </div>
+            </div>
+          ))}
+        </section>
+
+        {/* FB Review */}
+        <section style={rc}>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, color: "#F5E6C8", marginTop: 0, marginBottom: 14 }}>Fill in the Blanks</h3>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            {level.quiz.fillBlanks.blanks.map((blank, bi) => {
+              const st = getFB(bi);
+              return <div key={bi} style={{ padding: "8px 14px", borderRadius: 7, fontSize: 13, background: st === "correct" ? `${green}20` : `${red}20`, border: `1px solid ${st === "correct" ? green + "40" : red + "40"}`, color: st === "correct" ? green : red, fontWeight: 600 }}>
+                {st === "correct" ? "✓" : "✗"} {quizAnswers[`fb_${bi}`] || "(empty)"} → <strong>{blank}</strong>
+              </div>;
+            })}
+          </div>
+        </section>
+
+        {/* Seq Review */}
+        <section style={rc}>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, color: "#F5E6C8", marginTop: 0, marginBottom: 14 }}>Correct Sequence</h3>
+          {cSeq.map((item, i) => {
+            const ok = sequenceOrder[i] === item;
+            return <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", marginBottom: 4, borderRadius: 7, background: ok ? `${green}10` : `${red}10`, border: `1px solid ${ok ? green + "20" : red + "20"}` }}>
+              <span style={{ color: ok ? green : red, fontWeight: 800, fontSize: 12, minWidth: 20 }}>{i + 1}</span>
+              <span style={{ color: "#C4B89A", fontSize: 13 }}>{item}</span>
+              <span style={{ marginLeft: "auto", fontSize: 13, color: ok ? green : red }}>{ok ? "✓" : "✗"}</span>
+            </div>;
+          })}
+        </section>
+
+        {/* Comp Review */}
+        <section style={rc}>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, color: "#F5E6C8", marginTop: 0, marginBottom: 14 }}>Comprehension</h3>
+          {level.quiz.comprehension.map((q, qi) => (
+            <div key={qi}>
+              <p style={{ color: "#9B8A6E", fontSize: 12, marginBottom: 4, fontWeight: 500 }}>{q.q}</p>
+              <p style={{ color: "#8A8070", fontSize: 12, marginBottom: 4 }}>Your answer: <span style={{ color: "#C4B89A" }}>{quizAnswers[`comp_${qi}`] || "(none)"}</span></p>
+              <p style={{ color: green, fontSize: 13, fontWeight: 600, margin: 0 }}>Model: {q.answer}</p>
+            </div>
+          ))}
+        </section>
+
+        <div style={{ display: "flex", gap: 10 }}>
+          <button onClick={() => startDrill(level.id)} style={{ flex: 1, background: "rgba(245,230,200,0.06)", color: "#C4B89A", border: "1px solid rgba(245,230,200,0.12)", borderRadius: 10, padding: "14px 0", fontSize: 14, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontWeight: 600 }}>↻ Retry</button>
+          <button onClick={goHome} style={{ flex: 1, background: tier.color, color: "#1A1612", border: "none", borderRadius: 10, padding: "14px 0", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>Dashboard</button>
+          {level.id < 25 && <button onClick={() => startDrill(level.id + 1)} style={{ flex: 1, background: "transparent", color: tier.color, border: `2px solid ${tier.color}`, borderRadius: 10, padding: "14px 0", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>Next →</button>}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div style={{ minHeight: "100vh", background: "#1A1612", color: "#F5E6C8", fontFamily: "'DM Sans', sans-serif" }}>
+      <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, background: "radial-gradient(ellipse at 20% 0%, rgba(196,135,59,0.04) 0%, transparent 60%), radial-gradient(ellipse at 80% 100%, rgba(74,155,127,0.03) 0%, transparent 60%)" }} />
+
+      {/* Nav */}
+      <div style={{ position: "sticky", top: 0, zIndex: 100, background: "rgba(26,22,18,0.92)", backdropFilter: "blur(12px)", borderBottom: "1px solid rgba(245,230,200,0.06)", padding: "10px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <button onClick={goHome} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 10 }}>
+          <img src="https://interpretrain.com/cdn/shop/files/logo_180x.jpg?v=1613164057" alt="InterpreTrain" style={{ height: 34, borderRadius: 8 }} />
+          <span style={{ fontSize: 11, letterSpacing: 2.5, textTransform: "uppercase", color: "#9B8A6E", fontWeight: 600 }}>Memory Mastery</span>
+        </button>
+        {currentLevel && view === "drill" && <div style={{ fontSize: 12, color: "#7A7060" }}>Level {currentLevel} · {drillPhase}</div>}
+      </div>
+
+      <div style={{ position: "relative", zIndex: 1 }}>
+        {view === "dashboard" && renderDashboard()}
+        {view === "drill" && drillPhase === "tip" && renderTipPhase()}
+        {view === "drill" && drillPhase === "visualize" && renderVisualize()}
+        {view === "drill" && drillPhase === "listen" && renderListen()}
+        {view === "drill" && drillPhase === "quiz" && renderQuiz()}
+        {view === "drill" && drillPhase === "review" && renderReview()}
+      </div>
+    </div>
+  );
+}
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(React.createElement(App));
+  </script>
+</body>
+</html>
